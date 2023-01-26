@@ -4,7 +4,7 @@ FPDS Final project
 ## Git commands
 
 ### for starting
-##### git clone 
+##### git clone git@github.com:sreeragvn/Leakage-Detection.git
 ##### git checkout develop
 ###### see if all the new files are available in your local device
 
