@@ -1,5 +1,3 @@
-# loading the data of data
-
 import os
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 os.environ['CUDA_VISIBLE_DEVICES'] = "0"
@@ -13,57 +11,72 @@ import pandas as pd
 import seaborn as sns
 
 import tensorflow as tf
+from tensorflow import keras
 from keras import layers
+
+print("# GPUs Available: ", len(tf.config.experimental.list_physical_devices('GPU')))
 tf.keras.backend.set_floatx('float64')
 tf.compat.v1.enable_eager_execution()
 
 from sklearn.metrics import mean_squared_error
 
+
+def data_plot(data):
+    fig, axs = plt.subplots(5,1)
+    axs = axs.flatten()
+    for i in range(len(axs)-1):
+        ax = axs[i]
+        ax.plot(data[:,i])
+
+    ax = axs[-1]
+    ax.plot(tf.reduce_sum(data, axis=1))
+
+    print("Mean of inputs: {}".format(tf.reduce_mean(data, axis=0)))
 # np.random.seed(101)
 # tf.random.set_seed(101)
 
-def data_exploration():
-    leakage_train_100 = pd.read_csv("leakage_dataset_train_100.csv")
-    leakage_train_1000 = pd.read_csv("leakage_dataset_train_1000.csv")
-    leakage_val_1000 = pd.read_csv("leakage_dataset_validation_1000.csv")
-    # print(leakage_train_100.columns)
-    # print(leakage_train_1000.columns)
-    # print(leakage_val_1000.columns)
+# def data_exploration():
+#     leakage_train_100 = pd.read_csv("leakage_dataset_train_100.csv")
+#     leakage_train_1000 = pd.read_csv("leakage_dataset_train_1000.csv")
+#     leakage_val_1000 = pd.read_csv("leakage_dataset_validation_1000.csv")
+#     print(leakage_train_100.columns)
+#     print(leakage_train_1000.columns)
+#     print(leakage_val_1000.columns)
 
-    # def data_description(datset):
-    #     print(datset['y1'].describe())
-    #     print(datset['y2'].describe())
-    #     print(datset['mfc1'].describe())
-    #     print(datset['mfc2'].describe())
-    #     print(datset['mfc3'].describe())
-    #     print(datset['mfc4'].describe())
+#     def data_description(datset):
+#         print(datset['y1'].describe())
+#         print(datset['y2'].describe())
+#         print(datset['mfc1'].describe())
+#         print(datset['mfc2'].describe())
+#         print(datset['mfc3'].describe())
+#         print(datset['mfc4'].describe())
 
-    # data_description(leakage_train_100)
-    # data_description(leakage_train_1000)
-    # data_description(leakage_val_1000)
+#     data_description(leakage_train_100)
+#     data_description(leakage_train_1000)
+#     data_description(leakage_val_1000)
 
-    # sns.set()
-    # cols = ['y1', 'y2', 'mfc1', 'mfc2', 'mfc3', 'mfc4']
-    # sns.pairplot(leakage_train_1000[cols], size = 2.5)
-    # plt.show()
+#     sns.set()
+#     cols = ['y1', 'y2', 'mfc1', 'mfc2', 'mfc3', 'mfc4']
+#     sns.pairplot(leakage_train_1000[cols], size = 2.5)
+#     plt.show()
 
-    # missing data
-    # def missingdata(df_train):
-    #     total = df_train.isnull().sum().sort_values(ascending=False)
-    #     percent = (df_train.isnull().sum()/df_train.isnull().count()).sort_values(ascending=False)
-    #     missing_data = pd.concat([total, percent], axis=1, keys=['Total', 'Percent'])
-    #     print(missing_data.head(20))
+#     # missing data
+#     def missingdata(df_train):
+#         total = df_train.isnull().sum().sort_values(ascending=False)
+#         percent = (df_train.isnull().sum()/df_train.isnull().count()).sort_values(ascending=False)
+#         missing_data = pd.concat([total, percent], axis=1, keys=['Total', 'Percent'])
+#         print(missing_data.head(20))
 
-    # missingdata(leakage_val_1000)
+#     missingdata(leakage_val_1000)
 
-    # histogram and normal probability plot
-    # from scipy.stats import norm
-    # from scipy import stats
+#     # histogram and normal probability plot
+#     from scipy.stats import norm
+#     from scipy import stats
 
-    # sns.distplot(leakage_val_1000['y1'], fit=norm)
-    # fig = plt.figure()
-    # res = stats.probplot(leakage_val_1000['y1'], plot=plt)
-    return 0
+#     sns.distplot(leakage_val_1000['y1'], fit=norm)
+#     fig = plt.figure()
+#     res = stats.probplot(leakage_val_1000['y1'], plot=plt)
+#     return 0
 
 def load_data(a):
 
@@ -72,8 +85,10 @@ def load_data(a):
     leakage_val_1000 = pd.read_csv("leakage_dataset_validation_1000.csv")
 
     if a == 100:
+        print("100 rowed data loaded")
         train_ds = leakage_train_100
     elif a == 1000:
+        print("1000 rowed data loaded")
         train_ds = leakage_train_1000
     val_ds = leakage_val_1000
 
@@ -229,7 +244,7 @@ def model_eval(model, history, X_validation, Y_validation, X_train, Y_train, bat
     learning_curves(history)
     evaluate_train = model.evaluate(X_train, Y_train, batch_size=batch_size)
 
-    evaluate_train = model.evaluate(X_train, Y_train, batch_size=batch_size)
+    # evaluate_train = model.evaluate(X_train, Y_train, batch_size=batch_size)
     evaluate_validation = model.evaluate(X_validation,Y_validation, batch_size=batch_size)
 
     y_pred = model.predict(X_test)
@@ -243,12 +258,19 @@ class Hidden_layer(layers.Layer):
         self.initializer = initializer
 
     def build(self, input_shape):
-        self.W = self.add_weight(shape=(input_shape[-1],self.units), initializer=self.initializer,
+        self.W = self.add_weight(name = 'w',shape=(input_shape[-1],self.units), initializer=self.initializer,
                                  trainable=True, regularizer=self.kernel_regularizer)
 
     def call(self, inputs):
         x = tf.nn.relu(tf.matmul(inputs, self.W))
         return x
+    def get_config(self):
+        config = super(Hidden_layer, self).get_config()
+        config.update({"units": self.units})
+        config.update({"kernel_regularizer": self.kernel_regularizer})
+        config.update({"initializer": self.initializer})
+        return config
+        # return {"units": self.units, "kernel_regularizer": self.kernel_regularizer, "initializer": self.initializer}
 
 class Output_layer(layers.Layer):
     def __init__(self, units, kernel_regularizer, initializer):
@@ -258,12 +280,19 @@ class Output_layer(layers.Layer):
         self.initializer = initializer
 
     def build(self, input_shape):
-        self.W = self.add_weight(shape=(input_shape[-1],self.units), initializer=self.initializer,
+        self.W = self.add_weight(name = 'w',shape=(input_shape[-1],self.units), initializer=self.initializer,
                                  trainable=True, regularizer=self.kernel_regularizer)
 
     def call(self, inputs):
         x = tf.matmul(inputs, self.W)
         return x
+    def get_config(self):
+        config = super(Output_layer, self).get_config()
+        config.update({"units": self.units})
+        config.update({"kernel_regularizer": self.kernel_regularizer})
+        config.update({"initializer": self.initializer})
+        return config
+        # return {"units": self.units, "kernel_regularizer": self.kernel_regularizer, "initializer": self.initializer}
 
 # class MyReLU(layers.Layer):
 #     def __init__(self):
@@ -281,11 +310,11 @@ class EqHidden_layer(layers.Layer):
         self.initializer = initializer
 
     def build(self, input_shape):
-        self.a = self.add_weight(shape=(1,), initializer=self.initializer,
+        self.a = self.add_weight(name = 'a',shape=(1,), initializer=self.initializer,
                                  trainable=True, regularizer=self.kernel_regularizer)
-        self.b = self.add_weight(shape=(1,), initializer=self.initializer,
+        self.b = self.add_weight(name = 'b',shape=(1,), initializer=self.initializer,
                                  trainable=True, regularizer=self.kernel_regularizer)
-        self.c = self.add_weight(shape=(1,), initializer=self.initializer,
+        self.c = self.add_weight(name = 'c',shape=(1,), initializer=self.initializer,
                                  trainable=True, regularizer=self.kernel_regularizer)
         self.a_matrix = tf.constant([[1,0,0,0], [0,1,0,0], [0,0,1,0],[0,0,0,1]], dtype=tf.float64)
         self.b_matrix = tf.constant([[0,1,0,1], [1,0,1,0], [0,1,0,1],[1,0,1,0]], dtype=tf.float64)
@@ -296,6 +325,12 @@ class EqHidden_layer(layers.Layer):
         x = tf.nn.relu(tf.matmul(inputs, self.W))
         # tf.print(self.W)
         return x
+    def get_config(self):
+        config = super(EqHidden_layer, self).get_config()
+        config.update({"units": self.units})
+        config.update({"kernel_regularizer": self.kernel_regularizer})
+        config.update({"initializer": self.initializer})
+        return config
 
 class EqOutput_layer(layers.Layer):
     def __init__(self, units, kernel_regularizer, initializer):
@@ -305,7 +340,7 @@ class EqOutput_layer(layers.Layer):
         self.initializer = initializer
 
     def build(self, input_shape):
-        self.d = self.add_weight(shape=(1,), initializer=self.initializer,
+        self.d = self.add_weight(name = 'd',shape=(1,), initializer=self.initializer,
                                  trainable=True, regularizer=self.kernel_regularizer)
         self.d_matrix = tf.constant([[1,-1], [-1,-1], [-1,1],[1,1]], dtype=tf.float64)
 
@@ -314,3 +349,9 @@ class EqOutput_layer(layers.Layer):
         x = tf.matmul(inputs, self.W)
         # tf.print(tf.transpose(self.W))
         return x
+    def get_config(self):
+        config = super(EqOutput_layer, self).get_config()
+        config.update({"units": self.units})
+        config.update({"kernel_regularizer": self.kernel_regularizer})
+        config.update({"initializer": self.initializer})
+        return config
