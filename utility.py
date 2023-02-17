@@ -20,6 +20,8 @@ tf.compat.v1.enable_eager_execution()
 
 from sklearn.metrics import mean_squared_error
 
+np.random.seed(101)
+tf.random.set_seed(101)
 
 def data_plot(data):
     fig, axs = plt.subplots(5,1)
@@ -32,8 +34,6 @@ def data_plot(data):
     ax.plot(tf.reduce_sum(data, axis=1))
 
     print("Mean of inputs: {}".format(tf.reduce_mean(data, axis=0)))
-# np.random.seed(101)
-# tf.random.set_seed(101)
 
 # def data_exploration():
 #     leakage_train_100 = pd.read_csv("leakage_dataset_train_100.csv")
