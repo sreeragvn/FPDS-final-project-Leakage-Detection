@@ -80,9 +80,9 @@ def data_plot(data):
 
 def load_data(a):
 
-    leakage_train_100 = pd.read_csv("leakage_dataset_train_100.csv")
-    leakage_train_1000 = pd.read_csv("leakage_dataset_train_1000.csv")
-    leakage_val_1000 = pd.read_csv("leakage_dataset_validation_1000.csv")
+    leakage_train_100 = pd.read_csv("./data/leakage_dataset_train_100.csv")
+    leakage_train_1000 = pd.read_csv("./data/leakage_dataset_train_1000.csv")
+    leakage_val_1000 = pd.read_csv("./data/leakage_dataset_validation_1000.csv")
 
     if a == 100:
         print("100 rowed data loaded")
