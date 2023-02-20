@@ -243,15 +243,10 @@ def model_eval(model, history, X_validation, Y_validation, X_train, Y_train, bat
     prediction_accuracy(predictions, Y_validation)
     learning_curves(history)
     evaluate_train = model.evaluate(X_train, Y_train, batch_size=batch_size)
-    evaluate_validation = model.evaluate(X_validation,Y_validation, batch_size=batch_size)
-    y_pred = model.predict(X_test)
-    print(y_pred)
 
-def model_eval_low(model, X_validation, Y_validation, X_train, Y_train, batch_size, X_test):
-    predictions = model.predict(X_validation)
-    prediction_accuracy(predictions, Y_validation)
-    evaluate_train = model.evaluate(X_train, Y_train, batch_size=batch_size)
+    # evaluate_train = model.evaluate(X_train, Y_train, batch_size=batch_size)
     evaluate_validation = model.evaluate(X_validation,Y_validation, batch_size=batch_size)
+
     y_pred = model.predict(X_test)
     print(y_pred)
 
